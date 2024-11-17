@@ -14,6 +14,8 @@ use Vyuldashev\LaravelOpenApi\Factories\SecuritySchemeFactory;
 
 trait Referencable
 {
+    static $buildInstances = [];
+
     public static function ref(?string $objectId = null): Schema
     {
         $instance = app(static::class);
@@ -38,6 +40,21 @@ trait Referencable
             $baseRef = '#/components/securitySchemes/';
         }
 
-        return Schema::ref($baseRef.$instance->build()->objectId, $objectId);
+        $buildInstance = null;
+
+        // This form is used only temporary for tests
+        if (array_key_exists(static::class, self::$buildInstances)) {
+            ray('Build instance of ' . static::class . ' found');
+            $buildInstance = self::$buildInstances[static::class];
+        } else {
+            ray('Building instance of ' . static::class);
+            $buildInstance = $instance->build();
+            self::$buildInstances[static::class] = $buildInstance;
+        }
+
+        // Could be replaced with this:
+        // $buildInstance = $buildInstances[static::class] ??= $instance->build();
+
+        return Schema::ref($baseRef . $buildInstance->objectId, $objectId);
     }
 }
