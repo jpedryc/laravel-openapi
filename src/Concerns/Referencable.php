@@ -14,6 +14,8 @@ use Vyuldashev\LaravelOpenApi\Factories\SecuritySchemeFactory;
 
 trait Referencable
 {
+    static $buildReferencableSchemas = [];
+
     public static function ref(?string $objectId = null): Schema
     {
         $instance = app(static::class);
@@ -38,6 +40,6 @@ trait Referencable
             $baseRef = '#/components/securitySchemes/';
         }
 
-        return Schema::ref($baseRef.$instance->build()->objectId, $objectId);
+        return self::$buildReferencableSchemas[static::class . "_{$objectId}"] ??= Schema::ref($baseRef.$instance->build()->objectId, $objectId);
     }
 }
